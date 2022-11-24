@@ -13,11 +13,11 @@ mu = c(0,0)
 Sigma = matrix(c(1, rho, rho, 1), nrow = 2, ncol = 2)
 n = 100
 R = 500
-eps = 0.2
+eps = 0.1
 
 mu_null = c(0,0)
 
-set.seed(2)
+set.seed(1)
 
 results = replicate(R, {
   y = rmvnorm(n, mean = mu, sigma = Sigma) ## bivariate normal model
