@@ -1,33 +1,86 @@
 #####################################
 # Assignment Multivariate Statistics
+# Option 2: Hotelling's T2 statistic under contaminated data
 # Roel Veth 
 # Carlos de Cloet
 
 
-## Option 2
-
+### Libraries
 library('mvtnorm')
+library('robustbase')
 
-rho = 0.5
-mu = c(0,0)
-Sigma = matrix(c(1, rho, rho, 1), nrow = 2, ncol = 2)
-n = 100
-R = 500
-eps = 0.1
 
-mu_null = c(0,0)
+### Functions
+HotellingsTestStat <- function(n, mean, sigmaInverse, hypothesis) {
+  n*(mean-hypothesis)%*%sigmaInverse%*%(mean-hypothesis)
+}
 
-set.seed(1)
 
+
+
+### Model Parameters
+p <- 2 # Dimension of multivariate distrubution
+rho <- 0.5 # Correlation between parameters
+mu <- rep(0,p) # Location parameter
+eps <- 0.5 # part of data which will be contaminated
+significanceLevel = 0.01 # alpha = 0.05
+
+# Two sigma options (comment one to choose the other)
+# (1) rho on all off-diagonals
+Sigma <- diag(1,p)+matrix(rho,nrow=p,ncol=p)-diag(rho,p)
+# (2) rho^(number of steps from diagonal)
+#Sigma <- rho^t(sapply(1:p, function(i, j) abs(i-j), 1:p))
+
+
+### Contamination design: Choose the type of contamination
+contDirec <- 1 # 1 for all positive, -1 for all negative, 0 for random direction
+contMag <- 1 # 1 for always max, 0 for random magnitude. (random magnitude not yet implemented)
+contMagMax <- 500 # magnitude of contamination
+contFracPosi <- 0.5 # If contDirec = 0, the fraction of contaminations which are positive
+
+
+### Simulation parameters
+n <- 100 # Number of draws each simulation
+R <- 500 # Number of simulations
+mu_null <- rep(0,p) # Null hypothesis
+
+
+
+### MCD can be used from the covMcd() command from robustbase
+
+
+set.seed(1) # Set seed for replicability
 results = replicate(R, {
-  y = rmvnorm(n, mean = mu, sigma = Sigma) ## bivariate normal model
-  contamination = rbinom(n, 1, eps)
-  y = (1-contamination)*y + contamination*cbind(rep(50,n),rep(50,n)) ## Contamination model is here
+  draws = rmvnorm(n, mean = mu, sigma = Sigma) ## bivariate normal model
+  contaminatedDraws = rbern(n,eps) # Decide which draws are to be contaminated
   
-  Test = n*colMeans((y-mu_null))%*%solve(var(y))%*%colMeans((y-mu_null)) ## gebruiken variantie van contaminated model
-  signif = qf(0.95, 2, 98)*2*99/98 # critical value, where p=2, n=100
-  c(Test,signif)
+  # Todo: Try to make contaminations more efficient, currently a contamination is made
+  # for each draw, not just those who are randomly selected for contamination
+  if (contDirec == 0) { # contDirec == 0 is random direction
+    contamination <- (2*rbern(n,contFracPosi)-1) * contMagMax 
+  } else { # contDirec = +1, -1, thus all contaminations are positive or negative
+    contamination <- contMagMax
+  }
+  
+  data = (1-contaminatedDraws)*draws + contaminatedDraws*contamination # The contaminated data
+  
+  # First calculate statistics using regular estimator
+  means = colMeans(data)
+  sigmaInverse = solve(var(data))
+  testStat = HotellingsTestStat(n,means,sigmaInverse,mu_null)
+  critVal = qf(1-significanceLevel,p,n-p)*p*n-1/(n-p) #Volgens mij is de critical value niet goed, lijkt erg hoog
+  c(testStat, critVal, (testStat>critVal))
+  
+  
+  # Now calculate using MCD estimator
+  
+  
+  
+  # Test = n*colMeans((y-mu_null))%*%solve(var(y))%*%colMeans((y-mu_null)) ## gebruiken variantie van contaminated model
+  # signif = qf(0.95, 2, 98)*2*99/98 # critical value, where p=2, n=100
+  # c(Test,signif)
 })
 
+NumberOfRejections = sum(results[3,])
 
 #Hier gaan we nog nuttige dingen typen
