@@ -23,7 +23,7 @@ HotellingsTestStat <- function(n, mean, sigmaInverse, hypothesis) {
 p <- 2 # Dimension of multivariate distrubution
 rho <- 0.5 # Correlation between parameters
 mu <- rep(0,p) # Location parameter
-eps <- 0.5 # part of data which will be contaminated
+eps <- 0.1 # part of data which will be contaminated
 significanceLevel = 0.01 # alpha = 0.05
 
 # Two sigma options (comment one to choose the other)
@@ -34,7 +34,7 @@ Sigma <- diag(1,p)+matrix(rho,nrow=p,ncol=p)-diag(rho,p)
 
 
 ### Contamination design: Give the parameters for the contamination distribution
-muCont <- rep(50,p)
+muCont <- rep(5,p)
 SigmaCont <- diag(1,p)
 
 
@@ -81,7 +81,7 @@ results = replicate(R, {
   # First calculate statistics using regular estimator
   means = colMeans(data)
   sigmaInverse = solve(var(data))
-  testStat = HotellingsTestStat(n,means,sigmaInverse,mu_null)
+  testStatNormal = HotellingsTestStat(n,means,sigmaInverse,mu_null)
   critVal = qf(1-significanceLevel,p,n-p)*p*n-1/(n-p) #Volgens mij is de critical value niet goed, lijkt erg hoog
   c(testStat, critVal, (testStat>critVal))
   
@@ -89,12 +89,17 @@ results = replicate(R, {
   # Now calculate using MCD estimator
   
   
-  
+  robustEst = covMcd(data)
+  robustSigmaInverse = solve(robustEst$cov)
+  robustMean = robustEst$center
+  testStatRobust = HotellingsTestStat(n,robustMean,robustSigmaInverse,mu_null)
+  #Andere krtitieke waarde
+ 
   # Test = n*colMeans((y-mu_null))%*%solve(var(y))%*%colMeans((y-mu_null)) ## gebruiken variantie van contaminated model
   # signif = qf(0.95, 2, 98)*2*99/98 # critical value, where p=2, n=100
   # c(Test,signif)
 })
 
-NumberOfRejections = sum(results[3,])
+#NumberOfRejections = sum(results[3,])
 
 #Hier gaan we nog nuttige dingen typen
