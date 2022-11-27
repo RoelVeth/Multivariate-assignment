@@ -32,11 +32,21 @@ Sigma <- diag(1,p)+matrix(rho,nrow=p,ncol=p)-diag(rho,p)
 #Sigma <- rho^t(sapply(1:p, function(i, j) abs(i-j), 1:p))
 
 
-### Contamination design: Choose the type of contamination
-contDirec <- 1 # 1 for all positive, -1 for all negative, 0 for random direction
-contMag <- 1 # 1 for always max, 0 for random magnitude. (random magnitude not yet implemented)
-contMagMax <- 500 # magnitude of contamination
-contFracPosi <- 0.5 # If contDirec = 0, the fraction of contaminations which are positive
+### Contamination design: Give the parameters for the contamination distribution
+muCont <- rep(50,p)
+SigmaCont <- diag(1,p)
+
+
+# #Probably remove this, not necessary for the mixedcontDirec <- 1 # 1 for all positive, -1 for all negative, 0 for random direction
+# contMag <- 1 # 1 for always max, 0 for random magnitude. (random magnitude not yet implemented)
+# contMagMax <- 500 # magnitude of contamination
+# contFracPosi <- 0.5 # If contDirec = 0, the fraction of contaminations which are positive
+
+
+
+
+
+
 
 
 ### Simulation parameters
@@ -56,11 +66,14 @@ results = replicate(R, {
   
   # Todo: Try to make contaminations more efficient, currently a contamination is made
   # for each draw, not just those who are randomly selected for contamination
-  if (contDirec == 0) { # contDirec == 0 is random direction
-    contamination <- (2*rbern(n,contFracPosi)-1) * contMagMax 
-  } else { # contDirec = +1, -1, thus all contaminations are positive or negative
-    contamination <- contMagMax
-  }
+  contamination = rmvnorm(n,mean = muCont, sigma = SigmaCont)
+  
+  # # Todo: Check if this can be removed, it is most likely not a good way to make the contaminations
+  # if (contDirec == 0) { # contDirec == 0 is random direction
+  #   contamination <- (2*rbern(n,contFracPosi)-1) * contMagMax 
+  # } else { # contDirec = +1, -1, thus all contaminations are positive or negative
+  #   contamination <- contMagMax
+  # }
   
   data = (1-contaminatedDraws)*draws + contaminatedDraws*contamination # The contaminated data
   
