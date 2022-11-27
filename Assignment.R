@@ -87,16 +87,13 @@ results = replicate(R, {
   
   # Now calculate using MCD estimator
   
-  
   robustEst = covMcd(data)
   robustSigmaInverse = solve(robustEst$cov)
   robustMean = robustEst$center
   testStatRobust = HotellingsTestStat(n,robustMean,robustSigmaInverse,mu_null)
-  #Andere krtitieke waarde
+  #Andere krtitieke waarde!!!!
  
-  # Test = n*colMeans((y-mu_null))%*%solve(var(y))%*%colMeans((y-mu_null)) ## gebruiken variantie van contaminated model
   # signif = qf(0.95, 2, 98)*2*99/98 # critical value, where p=2, n=100
-  # c(Test,signif)
   c(testStatNormal, means, testStatRobust, robustMean)
 })
 
