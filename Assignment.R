@@ -8,6 +8,7 @@
 ### Libraries
 library('mvtnorm')
 library('robustbase')
+library('Rlab')
 
 
 ### Functions
