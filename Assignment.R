@@ -26,6 +26,21 @@ mu <- rep(0,p) # Location parameter
 eps <- 0.05 # part of da1 # alpha = 0.05
 significanceLevel = 0.05
 
+# Set k for calculating the critical value of the robust Hotellinggs t2 test
+if(p != 2 | p != 5 | p != 10){
+  print('error: p must be 2, 5 or 10')
+}
+
+if(p == 2){
+  k = 1.145
+} else if (p == 5){
+  k = 1.085
+} else if ( p == 10) {
+  k = 1.063
+}
+
+
+
 # Two sigma options (comment one to choose the other)
 # (1) rho on all off-diagonals
 Sigma <- diag(1,p)+matrix(rho,nrow=p,ncol=p)-diag(rho,p)
@@ -81,8 +96,8 @@ results = replicate(R, {
   # First calculate statistics using regular estimator
   means = colMeans(data)
   sigmaInverse = solve(var(data))
-  testStatNormal = HotellingsTestStat(n,means,sigmaInverse,mu_null)
-  critVal = qf(1-significanceLevel,p,n-p)*p*(n-1)/(n-p)
+  testStatClassic = HotellingsTestStat(n,means,sigmaInverse,mu_null)
+  critValClassic = qf(1-significanceLevel,p,n-p)*p*(n-1)/(n-p)
   
   # Now calculate using MCD estimator
   
@@ -90,9 +105,9 @@ results = replicate(R, {
   robustSigmaInverse = solve(robustEst$cov)
   robustMean = robustEst$center
   testStatRobust = HotellingsTestStat(n,robustMean,robustSigmaInverse,mu_null)
-  #Andere krtitieke waarde!!!!
+  critValRobust = k*qchisq(1-significanceLevel,p)
  
-  c(testStatNormal, testStatRobust, critVal)
+  c(testStatClassic, testStatRobust, critValClassic, critValRobust)
 })
 
 
