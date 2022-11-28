@@ -21,9 +21,10 @@ HotellingsTestStat <- function(n, mean, sigmaInverse, hypothesis) {
 
 ### Model Parameters
 p <- 2 # Dimension of multivariate distrubution
-rho <- 0.5 # Correlation between parameters
+rho <- 0.0 # Correlation between parameters
 mu <- rep(0,p) # Location parameter
-eps <- 0.0 # part of da1 # alpha = 0.05
+eps <- 0.05 # part of da1 # alpha = 0.05
+significanceLevel = 0.05
 
 # Two sigma options (comment one to choose the other)
 # (1) rho on all off-diagonals
@@ -51,7 +52,7 @@ SigmaCont <- diag(1,p)
 
 ### Simulation parameters
 n <- 100 # Number of draws each simulation
-R <- 500 # Number of simulations
+R <- 1000 # Number of simulations
 mu_null <- rep(0,p) # Null hypothesis
 
 
@@ -81,9 +82,7 @@ results = replicate(R, {
   means = colMeans(data)
   sigmaInverse = solve(var(data))
   testStatNormal = HotellingsTestStat(n,means,sigmaInverse,mu_null)
-  critVal = qf(1-significanceLevel,p,n-p)*p*n-1/(n-p) #Volgens mij is de critical value niet goed, lijkt erg hoog
-  
-  
+  critVal = qf(1-significanceLevel,p,n-p)*p*(n-1)/(n-p) #Volgens mij is de critical value niet goed, lijkt erg hoog
   
   # Now calculate using MCD estimator
   
@@ -93,8 +92,7 @@ results = replicate(R, {
   testStatRobust = HotellingsTestStat(n,robustMean,robustSigmaInverse,mu_null)
   #Andere krtitieke waarde!!!!
  
-  # signif = qf(0.95, 2, 98)*2*99/98 # critical value, where p=2, n=100
-  c(testStatNormal, means, testStatRobust, robustMean)
+  c(testStatNormal, testStatRobust, critVal)
 })
 
 
