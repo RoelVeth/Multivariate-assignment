@@ -82,7 +82,7 @@ results = replicate(R, {
   means = colMeans(data)
   sigmaInverse = solve(var(data))
   testStatNormal = HotellingsTestStat(n,means,sigmaInverse,mu_null)
-  critVal = qf(1-significanceLevel,p,n-p)*p*(n-1)/(n-p) #Volgens mij is de critical value niet goed, lijkt erg hoog
+  critVal = qf(1-significanceLevel,p,n-p)*p*(n-1)/(n-p)
   
   # Now calculate using MCD estimator
   
