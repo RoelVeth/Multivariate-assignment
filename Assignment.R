@@ -23,7 +23,7 @@ HotellingsTestStat <- function(n, mean, sigmaInverse, hypothesis) {
 p <- 2 # Dimension of multivariate distrubution
 rho <- 0.0 # Correlation between parameters
 mu <- rep(0,p) # Location parameter
-eps <- 0.05 # part of da1 # alpha = 0.05
+eps <- 0.0 # part of da1 # alpha = 0.05
 significanceLevel = 0.05
 
 # Set k for calculating the critical value of the robust Hotellinggs t2 test
@@ -67,7 +67,7 @@ SigmaCont <- diag(1,p)
 
 ### Simulation parameters
 n <- 100 # Number of draws each simulation
-R <- 1000 # Number of simulations
+R <- 3000 # Number of simulations
 mu_null <- rep(0,p) # Null hypothesis
 
 
@@ -75,7 +75,7 @@ mu_null <- rep(0,p) # Null hypothesis
 ### MCD can be used from the covMcd() command from robustbase
 
 
-set.seed(1) # Set seed for replicability
+set.seed(7) # Set seed for replicability ##UITZETTEN ANDERS HALEN WE DE R UIT RNG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 results = replicate(R, {
   draws = rmvnorm(n, mean = mu, sigma = Sigma) ## bivariate normal model
   contaminatedDraws = rbern(n,eps) # Decide which draws are to be contaminated
@@ -106,10 +106,24 @@ results = replicate(R, {
   robustMean = robustEst$center
   testStatRobust = HotellingsTestStat(n,robustMean,robustSigmaInverse,mu_null)
   critValRobust = k*qchisq(1-significanceLevel,p)
+  
+  if(testStatClassic > critValClassic){
+    rejectedClassic = 1
+  } else {
+    rejectedClassic = 0
+  }
+  
+  if(testStatRobust>critValRobust){
+    rejectedRobust = 1
+  } else {
+    rejectedRobust = 0
+  }
  
-  c(testStatClassic, testStatRobust, critValClassic, critValRobust)
+  c(testStatClassic, critValClassic, rejectedClassic, testStatRobust, critValRobust, rejectedRobust)
 })
 
 
+percentageRejectedClassic = sum(results[3,])/R
+percentageRejectedRobust = sum(results[6,])/R
 
 #Run is voorbij
