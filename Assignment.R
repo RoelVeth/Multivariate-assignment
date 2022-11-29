@@ -23,7 +23,7 @@ HotellingsTestStat <- function(n, mean, sigmaInverse, hypothesis) {
 p <- 2 # Dimension of multivariate distrubution
 rho <- 0.0 # Correlation between parameters
 mu <- rep(0,p) # Location parameter
-eps <- 0.0 # part of da1 # alpha = 0.05
+eps <- 0.1 # part of da1 # alpha = 0.05
 significanceLevel = 0.05
 
 # Set k for calculating the critical value of the robust Hotellinggs t2 test
@@ -49,7 +49,7 @@ Sigma <- diag(1,p)+matrix(rho,nrow=p,ncol=p)-diag(rho,p)
 
 
 ### Contamination design: Give the parameters for the contamination distribution
-muCont <- rep(5,p)
+muCont <- rep(60,p)
 SigmaCont <- diag(1,p)
 
 
@@ -66,8 +66,8 @@ SigmaCont <- diag(1,p)
 
 
 ### Simulation parameters
-n <- 100 # Number of draws each simulation
-R <- 3000 # Number of simulations
+n <- 20 # Number of draws each simulation
+R <- 1000 # Number of simulations
 mu_null <- rep(0,p) # Null hypothesis
 
 
@@ -75,7 +75,7 @@ mu_null <- rep(0,p) # Null hypothesis
 ### MCD can be used from the covMcd() command from robustbase
 
 
-set.seed(7) # Set seed for replicability ##UITZETTEN ANDERS HALEN WE DE R UIT RNG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 results = replicate(R, {
   draws = rmvnorm(n, mean = mu, sigma = Sigma) ## bivariate normal model
   contaminatedDraws = rbern(n,eps) # Decide which draws are to be contaminated
