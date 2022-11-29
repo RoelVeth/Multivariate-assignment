@@ -21,9 +21,25 @@ HotellingsTestStat <- function(n, mean, sigmaInverse, hypothesis) {
 
 ### Model Parameters
 p <- 2 # Dimension of multivariate distrubution
-rho <- 0.5 # Correlation between parameters
+rho <- 0.0 # Correlation between parameters
 mu <- rep(0,p) # Location parameter
 eps <- 0.0 # part of da1 # alpha = 0.05
+significanceLevel = 0.05
+
+# Set k for calculating the critical value of the robust Hotellinggs t2 test
+if(p != 2 | p != 5 | p != 10){
+  print('error: p must be 2, 5 or 10')
+}
+
+if(p == 2){
+  k = 1.145
+} else if (p == 5){
+  k = 1.085
+} else if ( p == 10) {
+  k = 1.063
+}
+
+
 
 # Two sigma options (comment one to choose the other)
 # (1) rho on all off-diagonals
@@ -51,7 +67,7 @@ SigmaCont <- diag(1,p)
 
 ### Simulation parameters
 n <- 100 # Number of draws each simulation
-R <- 500 # Number of simulations
+R <- 3000 # Number of simulations
 mu_null <- rep(0,p) # Null hypothesis
 
 
@@ -59,7 +75,7 @@ mu_null <- rep(0,p) # Null hypothesis
 ### MCD can be used from the covMcd() command from robustbase
 
 
-set.seed(1) # Set seed for replicability
+set.seed(7) # Set seed for replicability ##UITZETTEN ANDERS HALEN WE DE R UIT RNG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 results = replicate(R, {
   draws = rmvnorm(n, mean = mu, sigma = Sigma) ## bivariate normal model
   contaminatedDraws = rbern(n,eps) # Decide which draws are to be contaminated
@@ -80,10 +96,8 @@ results = replicate(R, {
   # First calculate statistics using regular estimator
   means = colMeans(data)
   sigmaInverse = solve(var(data))
-  testStatNormal = HotellingsTestStat(n,means,sigmaInverse,mu_null)
-  critVal = qf(1-significanceLevel,p,n-p)*p*n-1/(n-p) #Volgens mij is de critical value niet goed, lijkt erg hoog
-  
-  
+  testStatClassic = HotellingsTestStat(n,means,sigmaInverse,mu_null)
+  critValClassic = qf(1-significanceLevel,p,n-p)*p*(n-1)/(n-p)
   
   # Now calculate using MCD estimator
   
@@ -91,12 +105,25 @@ results = replicate(R, {
   robustSigmaInverse = solve(robustEst$cov)
   robustMean = robustEst$center
   testStatRobust = HotellingsTestStat(n,robustMean,robustSigmaInverse,mu_null)
-  #Andere krtitieke waarde!!!!
+  critValRobust = k*qchisq(1-significanceLevel,p)
+  
+  if(testStatClassic > critValClassic){
+    rejectedClassic = 1
+  } else {
+    rejectedClassic = 0
+  }
+  
+  if(testStatRobust>critValRobust){
+    rejectedRobust = 1
+  } else {
+    rejectedRobust = 0
+  }
  
-  # signif = qf(0.95, 2, 98)*2*99/98 # critical value, where p=2, n=100
-  c(testStatNormal, means, testStatRobust, robustMean)
+  c(testStatClassic, critValClassic, rejectedClassic, testStatRobust, critValRobust, rejectedRobust)
 })
 
 
+percentageRejectedClassic = sum(results[3,])/R
+percentageRejectedRobust = sum(results[6,])/R
 
 #Run is voorbij
