@@ -22,8 +22,8 @@ HotellingsTestStat <- function(n, mean, sigmaInverse, hypothesis) {
 ### Model Parameters
 p <- 2 # Dimension of multivariate distrubution
 rho <- 0.0 # Correlation between parameters
-mu <- rep(0,p) # Location parameter
-eps <- 0.1 # part of da1 # alpha = 0.05
+mu <- rep(0.0,p) # Location parameter
+eps <- 0.0 # part of da1 # alpha = 0.05
 significanceLevel = 0.05
 
 # Set k for calculating the critical value of the robust Hotellinggs t2 test
@@ -49,7 +49,7 @@ Sigma <- diag(1,p)+matrix(rho,nrow=p,ncol=p)-diag(rho,p)
 
 
 ### Contamination design: Give the parameters for the contamination distribution
-muCont <- rep(60,p)
+muCont <- rep(2,p)
 SigmaCont <- diag(1,p)
 
 
@@ -67,8 +67,8 @@ SigmaCont <- diag(1,p)
 
 ### Simulation parameters
 n <- 20 # Number of draws each simulation
-R <- 1000 # Number of simulations
-mu_null <- rep(0,p) # Null hypothesis
+R <- 3000 # Number of simulations
+mu_null <- rep(0.2,p) # Null hypothesis
 
 
 
@@ -118,7 +118,7 @@ results = replicate(R, {
   } else {
     rejectedRobust = 0
   }
- 
+
   c(testStatClassic, critValClassic, rejectedClassic, testStatRobust, critValRobust, rejectedRobust)
 })
 
